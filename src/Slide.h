@@ -7,21 +7,24 @@
 class Slide
 {
     int id;
-    std::vector<Photo> photos;
-    std::unordered_set<std::string> tags; // unique tags
+    vector<Photo> photos;
+    unordered_set<string> tags; // unique tags
     bool used;
+    static int slideID;
 
 public:
     // Constructor
-    Slide(int id, std::vector<Photo> photos);
+    Slide(vector<Photo> photos);
     // Getters
     int getID();
-    std::vector<Photo> getPhotos();
-    std::unordered_set<std::string> getTags();
+    vector<Photo> getPhotos();
+    unordered_set<string> getTags();
+    bool getUsed();
     // Setters
     void setID(int newId);
-    void setPhotos(std::vector<Photo> photos);
-    void setTags(std::vector<std::string> tags);
+    void setPhotos(vector<Photo> photos);
+    void setTags(unordered_set<string> tags);
+    void setUsed(bool newValue);
 };
 
 #endif //Slide_H

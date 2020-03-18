@@ -1,8 +1,11 @@
 #include "Slide.h"
 
-Slide::Slide(int id, std::vector<Photo> photos)
+int Slide::slideID = 0;
+
+Slide::Slide(vector<Photo> photos)
 {
-    this->id = id;
+    id = slideID;
+    slideID++;
     this->photos = photos;
     used = false;
 }
@@ -12,14 +15,19 @@ int Slide::getID()
     return id;
 }
 
-std::vector<Photo> Slide::getPhotos()
+vector<Photo> Slide::getPhotos()
 {
     return photos;
 }
 
-std::unordered_set<std::string> Slide::getTags()
+unordered_set<string> Slide::getTags()
 {
     return tags;
+}
+
+bool Slide::getUsed()
+{
+    return used;
 }
 
 void Slide::setID(int newId)
@@ -27,13 +35,17 @@ void Slide::setID(int newId)
     this->id = newId;
 }
 
-void Slide::setPhotos(std::vector<Photo> photos)
+void Slide::setPhotos(vector<Photo> photos)
 {
     this->photos = photos;
 }
 
-void Slide::setTags(std::vector<std::string> tags)
+void Slide::setTags(unordered_set<string> tags)
 {
-    this->tags.clear();
-    this->tags.insert(tags.begin(), tags.end());
+    this->tags = tags;
+}
+
+void Slide::setUsed(bool newValue)
+{
+    used = newValue;
 }

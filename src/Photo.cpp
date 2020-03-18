@@ -1,8 +1,11 @@
 #include "Photo.h"
 
-Photo::Photo(int id, char orientation, std::vector<std::string> tags)
+int Photo::photoID = 0;
+
+Photo::Photo(char orientation, vector<string> tags)
 {
-    this->id = id;
+    id = photoID;
+    photoID++;
     this->orientation = orientation;
     this->tags = tags;
     used = false;
@@ -18,7 +21,7 @@ char Photo::getOrientation()
     return orientation;
 }
 
-std::vector<std::string> Photo::getTags()
+vector<string> Photo::getTags()
 {
     return tags;
 }

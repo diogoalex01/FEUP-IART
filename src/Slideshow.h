@@ -5,8 +5,8 @@
 #include <string>
 #include <fstream>
 
-void parseInputFile(std::string &inputFileName, PhotoSelector &photoSelector);
-void parsePhoto(std::string photoLine);
-void writeOutputFile(std::string &ouputFileName);
+void parseInputFile(string &inputFileName, PhotoSelector &photoSelector);
+void parsePhoto(string photoLine);
+void writeOutputFile(string &ouputFileName, PhotoSelector &photoSelector);
 
 #endif //Slideshow_H

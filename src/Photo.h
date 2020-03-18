@@ -5,20 +5,23 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 class Photo
 {
     int id;
     char orientation; // either horizontal (H) or vertical (V)
-    std::vector<std::string> tags;
+    vector<string> tags;
     bool used;
+    static int photoID;
 
 public:
     // Constructor
-    Photo(int id, char orientation, std::vector<std::string> tags);
+    Photo(char orientation, vector<string> tags);
     // Getters
     int getID();
     char getOrientation();
-    std::vector<std::string> getTags();
+    vector<string> getTags();
     bool getUsed();
     // Setters
     void setUsed(bool newValue);

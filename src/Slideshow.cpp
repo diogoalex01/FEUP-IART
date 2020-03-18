@@ -3,18 +3,16 @@
 #include "Slideshow.h"
 #include "PhotoSelector.h"
 
-std::vector<Photo> vPhotos;
-std::vector<Photo> hPhotos;
+vector<Photo> vPhotos;
+vector<Photo> hPhotos;
 
-int photoID = 0;
-
-void parseInputFile(std::string &inputFileName, PhotoSelector &photoSelector)
+void parseInputFile(string &inputFileName, PhotoSelector &photoSelector)
 {
-    std::ifstream inputFile("../input/" + inputFileName);
+    ifstream inputFile("../input/" + inputFileName);
 
     if (inputFile.is_open())
     {
-        std::string numberOfPhotos, photo;
+        string numberOfPhotos, photo;
         getline(inputFile, numberOfPhotos);
 
         while (!inputFile.eof())
@@ -29,16 +27,17 @@ void parseInputFile(std::string &inputFileName, PhotoSelector &photoSelector)
 
         photoSelector.setVertical(vPhotos);
         photoSelector.setHorizontal(hPhotos);
-        printf("\n----\nthere are %zu vertical photos\nand there are %zu horizontal photos\n", photoSelector.getVertical().size(), photoSelector.getHorizontal().size());
+        printf("[Found %zu vertical photos]\n", vPhotos.size());
+        printf("[Found %zu horizontal photos]\n", hPhotos.size());
         inputFile.close();
     }
     else
     {
-        std::cerr << "Input file not found, try again!" << std::endl;
+        cerr << "Input file not found, try again!" << endl;
     }
 }
 
-void parsePhoto(std::string photoLine)
+void parsePhoto(string photoLine)
 {
     int index;
 
@@ -52,96 +51,71 @@ void parsePhoto(std::string photoLine)
     int numberTags = stoi(photoLine.substr(0, index));
     photoLine.erase(0, index + 1);
 
-    std::vector<std::string> tags;
+    vector<string> tags;
 
     // Photo tags
     for (int j = 0; j < numberTags; j++)
     {
         index = photoLine.find(' ');
-        std::string tag = photoLine.substr(0, index);
+        string tag = photoLine.substr(0, index);
         tags.push_back(tag);
         photoLine.erase(0, index + 1);
     }
 
-    Photo photo(photoID, orientation, tags);
-    photoID++;
-
-    std::cout << photoID << std::endl;
-    std::cout << orientation << std::endl;
-    for (unsigned int k = 0; k < tags.size(); k++)
-    {
-        std::cout << tags.at(k) << std::endl;
-    }
-
+    Photo photo(orientation, tags);
     if (orientation == 'V')
-    {
         vPhotos.push_back(photo);
-    }
+
     else
-    {
         hPhotos.push_back(photo);
-    }
 }
 
-void writeOutputFile(std::string &ouputFileName)
+void writeOutputFile(string &ouputFileName, PhotoSelector &photoSelector)
 {
-    std::ofstream outputFile("../output/" + ouputFileName);
+    ofstream outputFile("../output/" + ouputFileName);
 
     if (outputFile.is_open())
     {
-        std::vector<Slide> slideshow;
-
-        // To test
-        Photo p0(0, 'H', {});
-        Photo p1(1, 'H', {});
-        Photo p2(2, 'V', {});
-        Photo p3(3, 'V', {});
-
-        Slide s0(0, {p0});
-        Slide s1(0, {p3});
-        Slide s2(0, {p1, p2});
-
-        slideshow.push_back(s0);
-        slideshow.push_back(s1);
-        slideshow.push_back(s2);
-        //
+        vector<Slide> slideshow = photoSelector.getFinalSlides();
 
         int slideshowSize = slideshow.size();
-        outputFile << slideshowSize << std::endl;
+        outputFile << slideshowSize << endl;
 
         for (auto slideItr = slideshow.begin(); slideItr != slideshow.end(); slideItr++)
         {
-            for (auto photoItr = (*slideItr).getPhotos().begin(); photoItr != (*slideItr).getPhotos().end(); photoItr++)
+            vector<Photo> photos = (*slideItr).getPhotos();
+            for (size_t i = 0; i < photos.size(); i++)
             {
-                outputFile << (*photoItr).getID();
+                outputFile << photos.at(i).getID();
 
-                if (photoItr != (*slideItr).getPhotos().end() - 1) // Spaces only if there's more than 1 photo in the slide.
+                if (i == 0 && photos.size() == 2) // Spaces only if there's more than 1 photo in the slide.
                     outputFile << " ";
             }
 
-            outputFile << std::endl;
+            outputFile << endl;
         }
 
         outputFile.close();
     }
     else
     {
-        std::cout << "Unable to open file!";
+        cout << "Unable to open file!";
     }
 }
 
 int main()
 {
-    PhotoSelector photoSelector;
-    std::string inputFileName = "a_example.txt";
-    // std::cout << "Enter input file name: ";
-    // std::cin >> inputFileName;
+    PhotoSelector photoSelector({},{});
+    string inputFileName = "a_example.txt";
+    // cout << "Enter input file name: ";
+    // cin >> inputFileName;
 
-    std::cout << "Opening " << inputFileName << "!" << std::endl;
+    cout << "Opening " << inputFileName << "!" << endl;
     parseInputFile(inputFileName, photoSelector);
     photoSelector.makeSlides();
-    std::string ouputFileName = "example.txt";
-    writeOutputFile(ouputFileName);
+    photoSelector.getFinalScore();
+    string ouputFileName = "example.txt";
+    writeOutputFile(ouputFileName, photoSelector);
 
     return 0;
 }
