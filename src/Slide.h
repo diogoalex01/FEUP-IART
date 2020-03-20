@@ -9,7 +9,7 @@ class Slide
     int id;
     vector<Photo> photos;
     unordered_set<string> tags; // unique tags
-    bool used;
+    bool used;                  // is some slide's match
     static int slideID;
 
 public:
@@ -20,11 +20,13 @@ public:
     vector<Photo> getPhotos();
     unordered_set<string> getTags();
     bool getUsed();
+    bool getHasMatch();
     // Setters
     void setID(int newId);
     void setPhotos(vector<Photo> photos);
     void setTags(unordered_set<string> tags);
     void setUsed(bool newValue);
+    void setHasMatch(bool newValue);
 };
 
 #endif //Slide_H

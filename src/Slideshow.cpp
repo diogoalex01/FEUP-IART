@@ -105,8 +105,11 @@ void writeOutputFile(string &ouputFileName, PhotoSelector &photoSelector)
 
 int main()
 {
-    PhotoSelector photoSelector({},{});
-    string inputFileName = "a_example.txt";
+    /* initialize random seed: */
+    srand(time(NULL));
+
+    PhotoSelector photoSelector({}, {});
+    string inputFileName = "b_lovely_landscapes.txt";
     // cout << "Enter input file name: ";
     // cin >> inputFileName;
 

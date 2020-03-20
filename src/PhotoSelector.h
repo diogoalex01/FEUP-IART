@@ -3,6 +3,7 @@
 
 #include <queue>
 #include <algorithm>
+#include <time.h>
 
 #include "Photo.h"
 #include "Slide.h"
