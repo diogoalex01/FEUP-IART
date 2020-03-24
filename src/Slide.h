@@ -24,7 +24,8 @@ public:
     // Setters
     void setID(int newId);
     void setPhotos(vector<Photo> photos);
-    void setTags(unordered_set<string> tags);
+    void setTags(vector<string> newTags);
+    void setTags(vector<string> tags1, vector<string> tags2);
     void setUsed(bool newValue);
     void setHasMatch(bool newValue);
 };

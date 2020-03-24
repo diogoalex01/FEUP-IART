@@ -40,9 +40,17 @@ void Slide::setPhotos(vector<Photo> photos)
     this->photos = photos;
 }
 
-void Slide::setTags(unordered_set<string> tags)
+void Slide::setTags(vector<string> newTags)
 {
-    this->tags = tags;
+    this->tags.clear();
+    this->tags.insert(newTags.begin(), newTags.end());
+}
+
+void Slide::setTags(vector<string> tags1, vector<string> tags2)
+{
+    this->tags.clear();
+    this->tags.insert(tags1.begin(), tags1.end());
+    this->tags.insert(tags2.begin(), tags2.end());
 }
 
 void Slide::setUsed(bool newValue)

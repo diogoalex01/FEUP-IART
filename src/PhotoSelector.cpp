@@ -1,11 +1,22 @@
 #include "PhotoSelector.h"
+#include <random>
+#include <chrono>
+#include <math.h>
+long attempts = 0;
 
 PhotoSelector::PhotoSelector(vector<Photo> vPhotos, vector<Photo> hPhotos)
 {
+    this->nAttempts = 0;
+    this->currentScore = 0;
     this->vPhotos = vPhotos;
     this->hPhotos = hPhotos;
 
     cout << "made photo selector" << this->vPhotos.size() << " " << hPhotos.size() << endl;
+}
+
+int PhotoSelector::getCurrentScore()
+{
+    return currentScore;
 }
 
 vector<Photo> PhotoSelector::getVertical()
@@ -18,9 +29,9 @@ vector<Photo> PhotoSelector::getHorizontal()
     return hPhotos;
 }
 
-vector<Slide> PhotoSelector::getInitialSlides()
+vector<Slide> PhotoSelector::getCurrentSlides()
 {
-    return initialSlides;
+    return currentSlides;
 }
 
 vector<Slide> PhotoSelector::getFinalSlides()
@@ -46,11 +57,9 @@ void PhotoSelector::makeSlides()
     for (auto it = hPhotos.begin(); it != hPhotos.end(); it++)
     {
         Slide slide({(*it)});
-        hTagsSet.clear();
         tags = (*it).getTags();
-        hTagsSet.insert(tags.begin(), tags.end());
-        slide.setTags(hTagsSet);
-        initialSlides.push_back(slide);
+        slide.setTags(tags);
+        currentSlides.push_back(slide);
     }
 
     for (auto it = vPhotos.begin(); it != vPhotos.end(); it++)
@@ -59,12 +68,11 @@ void PhotoSelector::makeSlides()
 
         if (!(*it).getUsed())
         {
-            // HCfindVerticalPair((*it), slide);
-            SAfindVerticalPair((*it), slide);
+            findVerticalPair((*it), slide);
         }
     }
 
-    // for (Slide slide : initialSlides)
+    // for (Slide slide : currentSlides)
     // {
     //     // cout << "\n-----------------------------\n"
     //     //      << slide.getID() << " has " << slide.getPhotos().size() << " photos and "
@@ -79,8 +87,21 @@ void PhotoSelector::makeSlides()
     //     }
     // }
 
-    // HCmakeSlideshow();
-    SAmakeSlideshow();
+    printf("Finished making %zu slides!\n", getCurrentSlides().size());
+    updateCurrentScore();
+    printf("Current score: %d\n", getCurrentScore());
+
+    maxAttempts = 10000;//pow(currentSlides.size(), 2);
+    printf("Max Attempts: %ld\n", maxAttempts);
+    while (nAttempts < maxAttempts)
+    {
+        nAttempts++;
+        attempts++;
+        makeChange();
+    }
+
+    printf("Current score: %d\n", getCurrentScore());
+    printf("Attempts: %ld\n", attempts);
 }
 
 int PhotoSelector::getTransitionScore(unordered_set<string> currentSlide, unordered_set<string> nextSlide)
@@ -105,186 +126,126 @@ int PhotoSelector::getTransitionScore(unordered_set<string> currentSlide, unorde
     int subResult = min(nextSlideTags, currentSlideTags);
     int finalResult = min(subResult, commonTags);
     // printf("Common tags: %d\n  S1 tags: %d\n  S2 tags: %d\n  Result: %d\n", commonTags, currentSlideTags, nextSlideTags, finalResult);
-
     return finalResult;
 }
 
-int PhotoSelector::getFinalScore()
+void PhotoSelector::updateCurrentScore()
 {
-    int finalScore = 0;
+    int transitionScore;
+    if (currentSlides.size() <= 1)
+        currentScore = 0;
 
-    if (finalSlides.size() <= 1)
-        return 0;
-
-    for (auto slideItr = finalSlides.begin(); slideItr != finalSlides.end() - 1; slideItr++)
+    for (auto slideItr = currentSlides.begin(); slideItr != currentSlides.end() - 1; slideItr++)
     {
         auto nextSlideItr = slideItr + 1;
-        finalScore += getTransitionScore(slideItr->getTags(), nextSlideItr->getTags());
+        transitionScore = getTransitionScore(slideItr->getTags(), nextSlideItr->getTags());
+        //printf("Transition Score: %d\n", transitionScore);
+        currentScore += transitionScore;
     }
-
-    printf("\nFinal Score: %d\n", finalScore);
-    return finalScore;
+    //printf("\nCurrent Score: %d\n", currentScore);
 }
 
-void PhotoSelector::HCfindVerticalPair(Photo &photo, Slide &slide)
+void PhotoSelector::updateCurrentScore(int change)
 {
-    unordered_set<string> allTags;
-    vector<string> tags;
+    this->currentScore += change;
+
+    //printf("\nCurrent Score: %d\n", currentScore);
+}
+
+void PhotoSelector::findVerticalPair(Photo &photo, Slide &slide)
+{
+    // if the number of vertical photos is odd, the last one is not used
+    if (photo.getID() == vPhotos.at(vPhotos.size() - 1).getID() && vPhotos.size() % 2 != 0)
+    {
+        return;
+    }
 
     for (auto it = vPhotos.begin(); it != vPhotos.end(); ++it)
     {
         if (it->getID() != photo.getID() && !it->getUsed())
         {
-            tags = (*it).getTags();
-            allTags.insert(tags.begin(), tags.end());
-            tags = photo.getTags();
-            allTags.insert(tags.begin(), tags.end());
-
-            // If number of distinct tags is larger than the number of
-            // tags in the current photo, then there must be at least one new tag.
-            if (allTags.size() > photo.getTags().size())
-            {
-                slide.setPhotos({photo, *it});
-                slide.setTags(allTags);
-                photo.setUsed(true);
-                it->setUsed(true);
-                initialSlides.push_back(slide);
-                break;
-            }
+            slide.setPhotos({photo, *it});
+            slide.setTags(photo.getTags(), it->getTags());
+            photo.setUsed(true);
+            it->setUsed(true);
+            currentSlides.push_back(slide);
+            return;
         }
     }
 }
 
-void PhotoSelector::HCmakeSlideshow()
+void PhotoSelector::makeChange()
 {
-    int randomIndex = (rand() % initialSlides.size());
-    cout << "RANDOM INDEX ---------------- " << randomIndex << endl;
-    // Inital state is the first slide
-    finalSlides.push_back(initialSlides.at(randomIndex));
-    initialSlides.at(randomIndex).setUsed(true);
-    unordered_set<string> currentTags = initialSlides.at(randomIndex).getTags();
-    bool foundMatch = true;
+    int randomIndex = 1; //(rand() % 1);
+    // cout << "Permutation option: " << randomIndex << endl;
 
-    while (foundMatch)
+    if (randomIndex)
     {
-        for (auto slideItr = initialSlides.begin(); slideItr != initialSlides.end(); slideItr++)
-        {
-            if (!slideItr->getUsed() && getTransitionScore(currentTags, slideItr->getTags()) > 0)
-            {
-                slideItr->setUsed(true);
-                finalSlides.push_back((*slideItr));
-                currentTags = slideItr->getTags();
-                break;
-            }
-
-            if (slideItr == initialSlides.end() - 1)
-            {
-                foundMatch = false;
-                break;
-            }
-        }
+        // Permutation between slides
+        permuteSlides();
+    }
+    else
+    {
+        // Permutation between photos
+        permutePhotos();
     }
 }
 
-void PhotoSelector::SAfindVerticalPair(Photo &photo, Slide &slide)
+void PhotoSelector::permuteSlides()
 {
-    unordered_set<string> allTags;
-    vector<string> tags;
-    size_t bestMatch;
-    size_t bestScore = 0;
-    bool foundMatch = false;
+    random_device device;
+    mt19937 generator(device());
+    uniform_int_distribution<int> dis(0,749);
+     size_t firstSlideIndex  = dis(generator);
+     size_t secondSlideIndex  = dis(generator);
 
-    for (auto it = vPhotos.begin(); it != vPhotos.end(); ++it)
+    while (firstSlideIndex == secondSlideIndex)
     {
-        if (it->getID() != photo.getID() && !it->getUsed())
-        {
-            tags = (*it).getTags();
-            allTags.insert(tags.begin(), tags.end());
-            tags = photo.getTags();
-            allTags.insert(tags.begin(), tags.end());
+        firstSlideIndex = dis(generator);
+        secondSlideIndex =  dis(generator);
+    }
+    //printf("Selected slides %zu and %zu\n", firstSlideIndex, secondSlideIndex);
 
-            // If number of distinct tags is larger than the number of
-            // tags in the current photo, then there must be at least one new tag.
-            if (allTags.size() - photo.getTags().size() > bestScore)
-            {
-                foundMatch = true;
-                bestScore = allTags.size() - photo.getTags().size();
-                bestMatch = it - vPhotos.begin();
-            }
-        }
+    int scoreBefore = 0, scoreAfter = 0;
+    // secondSlideIndex always after firstSlideIndex
+    if (firstSlideIndex > secondSlideIndex)
+    {
+        int temp = firstSlideIndex;
+        firstSlideIndex = secondSlideIndex;
+        secondSlideIndex = temp;
     }
 
-    if (foundMatch)
+    // A (B) C .... G (H) I
+    // A -> B + B -> C + G -> H + H -> I
+    // Compare with
+    // A -> H + H -> C + G -> B + B -> I
+
+    if (firstSlideIndex != 0)
     {
-        slide.setPhotos({photo, vPhotos.at(bestMatch)});
-        slide.setTags(allTags);
-        photo.setUsed(true);
-        vPhotos.at(bestMatch).setUsed(true);
-        initialSlides.push_back(slide);
+        scoreBefore += getTransitionScore(currentSlides.at(firstSlideIndex - 1).getTags(), currentSlides.at(firstSlideIndex).getTags());
+        scoreAfter += getTransitionScore(currentSlides.at(firstSlideIndex - 1).getTags(), currentSlides.at(secondSlideIndex).getTags());
     }
-}
-
-void PhotoSelector::SAmakeSlideshow()
-{
-    int randomIndex = (rand() % initialSlides.size());
-    cout << "RANDOM INDEX ---------------- " << randomIndex << endl;
-    // Inital state is the first slide
-    finalSlides.push_back(initialSlides.at(randomIndex));
-    initialSlides.at(randomIndex).setUsed(true);
-    size_t bestMatch;
-    int bestScore = 0;
-    unordered_set<string> currentTags = initialSlides.at(randomIndex).getTags();
-    bool foundMatch = true;
-    bool hasCandidate = false;
-
-    while (foundMatch)
+    else if (secondSlideIndex != getCurrentSlides().size() - 1)
     {
-        cout << "for" << endl;
-        for (auto slideItr = initialSlides.begin(); slideItr != initialSlides.end(); slideItr++)
-        {
-            if (!slideItr->getUsed())
-            {
-                int transitionScore = getTransitionScore(currentTags, slideItr->getTags());
-                if (transitionScore > bestScore)
-                {
-                    hasCandidate = true;
-                    bestScore = transitionScore;
-                    bestMatch = slideItr - initialSlides.begin();
-                }
-            }
-
-            if (slideItr == initialSlides.end() - 1)
-            {
-                if (hasCandidate)
-                {
-                    initialSlides.at(bestMatch).setUsed(true);
-                    finalSlides.push_back(initialSlides.at(bestMatch));
-                    currentTags = initialSlides.at(bestMatch).getTags();
-                    hasCandidate = false;
-                    bestScore = 0;
-                }
-                else
-                {
-                    foundMatch = false;
-                }
-            }
-        }
+        scoreBefore += getTransitionScore(currentSlides.at(secondSlideIndex).getTags(), currentSlides.at(secondSlideIndex + 1).getTags());
+        scoreAfter += getTransitionScore(currentSlides.at(firstSlideIndex).getTags(), currentSlides.at(secondSlideIndex + 1).getTags());
     }
 
-    // for (auto slideItr = initialSlides.begin() + 1; slideItr != initialSlides.end(); slideItr++)
-    // {
-    //     if (!slideItr->getUsed() && getTransitionScore(currentTags, slideItr->getTags()) > bestScore)
-    //     {
-    //         foundMatch = true;
-    //         bestScore = getTransitionScore(currentTags, slideItr->getTags());
-    //         bestMatch = slideItr - initialSlides.begin();
-    //     }
-    // }
-
-    // if (foundMatch)
-    // {
-    //     initialSlides.at(bestMatch).setUsed(true);
-    //     finalSlides.push_back(initialSlides.at(bestMatch));
-    //     currentTags = initialSlides.at(bestMatch).getTags();
-    // }
+    scoreBefore += getTransitionScore(currentSlides.at(firstSlideIndex).getTags(), currentSlides.at(firstSlideIndex + 1).getTags());
+    scoreBefore += getTransitionScore(currentSlides.at(secondSlideIndex - 1).getTags(), currentSlides.at(secondSlideIndex).getTags());
+    scoreAfter += getTransitionScore(currentSlides.at(secondSlideIndex - 1).getTags(), currentSlides.at(firstSlideIndex).getTags());
+    scoreAfter += getTransitionScore(currentSlides.at(secondSlideIndex).getTags(), currentSlides.at(firstSlideIndex + 1).getTags());
+    printf("Attempts number %ld\n", attempts);
+    //printf("total score before swap: %d\n", getCurrentScore());
+    //printf("transitions score before: %d\ntransitions score after: %d\n", scoreBefore, scoreAfter);
+    if (scoreAfter > scoreBefore)
+    {
+        //printf("[swaping %zu and %zu]\n", firstSlideIndex, secondSlideIndex);
+        //printf("total score before swap: %d\n", getCurrentScore());
+        vector<Slide>::iterator firstSlideIter = currentSlides.begin() + firstSlideIndex;
+        vector<Slide>::iterator secondSlideIter = currentSlides.begin() + secondSlideIndex;
+        iter_swap(firstSlideIter, secondSlideIter);
+        updateCurrentScore(scoreAfter - scoreBefore);
+        nAttempts = 0;
+    }
 }

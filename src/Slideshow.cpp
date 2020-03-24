@@ -116,7 +116,7 @@ int main()
     cout << "Opening " << inputFileName << "!" << endl;
     parseInputFile(inputFileName, photoSelector);
     photoSelector.makeSlides();
-    photoSelector.getFinalScore();
+    photoSelector.getCurrentScore();
     string ouputFileName = "example.txt";
     writeOutputFile(ouputFileName, photoSelector);
 
