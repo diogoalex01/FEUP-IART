@@ -65,7 +65,6 @@ void parsePhoto(string photoLine)
     Photo photo(orientation, tags);
     if (orientation == 'V')
         vPhotos.push_back(photo);
-
     else
         hPhotos.push_back(photo);
 }
@@ -76,7 +75,7 @@ void writeOutputFile(string &ouputFileName, PhotoSelector &photoSelector)
 
     if (outputFile.is_open())
     {
-        vector<Slide> slideshow = photoSelector.getFinalSlides();
+        vector<Slide> slideshow = photoSelector.getCurrentSlides();
 
         int slideshowSize = slideshow.size();
         outputFile << slideshowSize << endl;
@@ -103,13 +102,18 @@ void writeOutputFile(string &ouputFileName, PhotoSelector &photoSelector)
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    /* initialize random seed: */
-    srand(time(NULL));
-
+    // if (argc < 3)
+    // {
+    //     //printf("usage: ./Slideshow input_file 1 ou  para SAn")
+    //     printf("Missing arguments\n");
+    //     exit(-2);
+    // }
+    printf("%d arguments\n", argc);
+    string input_file = argv[1];
     PhotoSelector photoSelector({}, {});
-    string inputFileName = "b_lovely_landscapes.txt";
+    string inputFileName = input_file;
     // cout << "Enter input file name: ";
     // cin >> inputFileName;
 

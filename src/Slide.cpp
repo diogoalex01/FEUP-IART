@@ -10,6 +10,13 @@ Slide::Slide(vector<Photo> photos)
     used = false;
 }
 
+Slide::Slide(vector<Photo> photos, int slideID)
+{
+    id = slideID;
+    this->photos = photos;
+    used = true;
+}
+
 int Slide::getID()
 {
     return id;
@@ -28,6 +35,11 @@ unordered_set<string> Slide::getTags()
 bool Slide::getUsed()
 {
     return used;
+}
+
+char Slide::getOrientation()
+{
+    return orientation;
 }
 
 void Slide::setID(int newId)
@@ -56,4 +68,8 @@ void Slide::setTags(vector<string> tags1, vector<string> tags2)
 void Slide::setUsed(bool newValue)
 {
     used = newValue;
+}
+
+void Slide::setOrientation(char newOrientation){
+    this->orientation = newOrientation;
 }

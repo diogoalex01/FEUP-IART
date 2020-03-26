@@ -1,11 +1,5 @@
 4
 H 3 cat beach sun
-H 3 mountain rain dog
+H 2 garden cat
+V 2 selfie smile
 V 2 garden selfie
-H 3 mountain bike dirt
-V 2 garden cat
-V 2 selfie smile sun
-H 3 cat ocean sun
-H 3 garden ocean dog
-H 3 mountain bike friends
-H 4 cat dog summer parrot
