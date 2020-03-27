@@ -104,15 +104,17 @@ void writeOutputFile(string &ouputFileName, PhotoSelector &photoSelector)
 
 int main(int argc, char **argv)
 {
-    // if (argc < 3)
-    // {
-    //     //printf("usage: ./Slideshow input_file 1 ou  para SAn")
-    //     printf("Missing arguments\n");
-    //     exit(-2);
-    // }
-    printf("%d arguments\n", argc);
+    if (argc < 3)
+    {
+        printf("Usage: ./Slideshow input_file heuristic");
+        printf("Missing arguments!\n");
+        exit(-2);
+    }
+    
     string input_file = argv[1];
-    PhotoSelector photoSelector({}, {});
+    int heuristic = stoi(argv[2]);
+
+    PhotoSelector photoSelector({}, {}, heuristic);
     string inputFileName = input_file;
     // cout << "Enter input file name: ";
     // cin >> inputFileName;

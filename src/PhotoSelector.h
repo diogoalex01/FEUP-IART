@@ -12,6 +12,8 @@
 
 class PhotoSelector
 {
+    int heuristic;
+
     int currentScore = 0;
     long stateChanges = 0;
     long nAttempts = 0;
@@ -22,6 +24,9 @@ class PhotoSelector
     double alpha = 0.9;   // decrease in temperature
     long numIterations;   // number of iterations of annealing before decreasing temperature;
 
+    queue<string> tabuList;
+    queue<string> tabuAux;
+
     vector<Photo> vPhotos;
     vector<Photo> hPhotos;
     vector<Slide> currentSlides;
@@ -29,7 +34,7 @@ class PhotoSelector
 
 public:
     // Constructor
-    PhotoSelector(vector<Photo> vp, vector<Photo> hp);
+    PhotoSelector(vector<Photo> vp, vector<Photo> hp, int heuristic);
     // Getters
     int getCurrentScore();
     vector<Photo> getVertical();
@@ -42,8 +47,11 @@ public:
     void makeSlides();
     void findVerticalPair(Photo &photo, Slide &slide);
     void getRandomIndexes(size_t &firstSlideIndex, size_t &secondSlideIndex, mt19937 generator);
+    void genPairVerticalSlides(Slide &s1, Slide &s2, Slide firstSlide, Slide secondSlide, mt19937 generator);
     int getTransitionScore(unordered_set<string> currentSlide, unordered_set<string> nextSlide);
     void compareScores(Slide &firstSlide, Slide &secondSlide, int &scoreBefore, int &scoreAfter, size_t firstSlideIndex, size_t secondSlideIndex);
+    string tabuEntry(size_t firstIndex, size_t secondIndex, int kind);
+    bool isTabu(string entry);
     // Heuristics
     void hillClimbing();
     void simulatedAnnealing();
