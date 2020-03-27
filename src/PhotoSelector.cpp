@@ -77,7 +77,8 @@ void PhotoSelector::makeSlides()
     printf("Finished making %zu slides!\n", lastSlideIndex + 1);
     evaluateScore();
     printf("Initial score: %d\n", getCurrentScore());
-
+    populationSize = 2500;
+    maxGenerations = 25;
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 
     switch (heuristic)
@@ -93,14 +94,18 @@ void PhotoSelector::makeSlides()
     case 3:
         tabuSearch();
         break;
+
+    case 4:
+        geneticAlgorithm();
+        break;
     }
 
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
 
     cout << "Elapsed Time: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " [ms]" << endl;
     evaluateScore();
-    printf("Final Score: %d\n", getCurrentScore());
-    printf("State Changes: %ld\n", stateChanges);
+    // printf("Final Score: %d\n", getCurrentScore());
+    // printf("State Changes: %ld\n", stateChanges);
 }
 
 void PhotoSelector::findVerticalPair(Photo &photo, Slide &slide)
@@ -272,6 +277,29 @@ bool PhotoSelector::isTabu(string entry)
     }
 
     return false;
+}
+
+vector<int> PhotoSelector::createChromosome(size_t rangeOfIndexes)
+{
+    unordered_set<int> used;
+    random_device device;
+    mt19937 generator(device());
+    uniform_int_distribution<int> dis(0, rangeOfIndexes);
+    size_t slideIndex;
+    vector<int> genome;
+
+    while (genome.size() < rangeOfIndexes)
+    {
+        slideIndex = dis(generator);
+        auto search = used.find(slideIndex);
+        if (search == used.end())
+        {
+            genome.push_back(slideIndex);
+            used.insert(slideIndex);
+        }
+    }
+
+    return genome;
 }
 
 // Heuristics
@@ -540,7 +568,93 @@ void PhotoSelector::neighbouringTS()
     }
 }
 
-// Evaluation Function
+void PhotoSelector::geneticAlgorithm()
+{
+    unordered_set<int> used;
+    random_device device;
+    mt19937 generator(device());
+    uniform_int_distribution<int> dis(0, populationSize / 2);
+    int generation = 0;
+    vector<int> bestIndividual;
+    int maxFitness = 0;
+    int firstParentIndex, secondParentIndex;
+    Individual firstParent({}), secondParent({}), offspring({});
+
+    vector<Individual> population;
+    Individual newIndividual({});
+    int individualFitness;
+
+    // create initial population
+    for (int i = 0; i < populationSize; i++)
+    {
+        vector<int> chromosome = createChromosome(lastSlideIndex);
+        newIndividual = Individual(chromosome);
+        individualFitness = calculateFitness(newIndividual);
+        newIndividual.setFitness(individualFitness);
+        population.push_back(newIndividual);
+    }
+
+    while (generation < maxGenerations)
+    {
+        printf("Generation %d ", generation);
+        chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+        sort(population.begin(), population.end());
+
+        if (population[0].getFitness() > maxFitness)
+        {
+            maxFitness = population[0].getFitness();
+
+            bestIndividual = population[0].getChromosome();
+        }
+
+        vector<Individual> newGeneration;
+
+        int s = 0.1 * populationSize;
+
+        for (int i = 0; i < s; i++)
+            newGeneration.push_back(population[i]);
+
+        s = 0.9 * populationSize;
+        for (int i = 0; i < s; i++)
+        {
+            firstParentIndex = dis(generator);
+            secondParentIndex = dis(generator);
+            firstParent = population[firstParentIndex];
+            secondParent = population[secondParentIndex];
+            offspring = firstParent.mate(secondParent);
+            individualFitness = calculateFitness(offspring);
+            offspring.setFitness(individualFitness);
+            newGeneration.push_back(offspring);
+        }
+
+        population = newGeneration;
+        chrono::steady_clock::time_point end = chrono::steady_clock::now();
+        cout << "Elapsed Time: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " [ms]" << endl;
+
+        generation++;
+    }
+
+    printf("Final Score: %d\n", maxFitness);
+}
+
+// Evaluation Functions
+
+int PhotoSelector::calculateFitness(Individual individual)
+{
+    int fitness = 0, transitionScore;
+    vector<int> allIndexes = individual.getChromosome();
+
+    if (individual.getChromosomeLength() <= 1)
+        return 0;
+
+    for (size_t i = 0; i < individual.getChromosomeLength() - 1; i++)
+    {
+        transitionScore = getTransitionScore(currentSlides.at(allIndexes.at(i)).getTags(), currentSlides.at(allIndexes.at(i + 1)).getTags());
+        fitness += transitionScore;
+    }
+
+    return fitness;
+};
 
 void PhotoSelector::evaluateScore()
 {

@@ -9,6 +9,7 @@
 
 #include "Photo.h"
 #include "Slide.h"
+#include "Individual.h"
 
 class PhotoSelector
 {
@@ -26,6 +27,10 @@ class PhotoSelector
 
     queue<string> tabuList;
     queue<string> tabuAux;
+
+    vector<Individual> population;
+    int populationSize;
+    int maxGenerations;
 
     vector<Photo> vPhotos;
     vector<Photo> hPhotos;
@@ -52,15 +57,18 @@ public:
     void compareScores(Slide &firstSlide, Slide &secondSlide, int &scoreBefore, int &scoreAfter, size_t firstSlideIndex, size_t secondSlideIndex);
     string tabuEntry(size_t firstIndex, size_t secondIndex, int kind);
     bool isTabu(string entry);
+    vector<int> createChromosome(size_t range);
     // Heuristics
     void hillClimbing();
     void simulatedAnnealing();
     void tabuSearch();
+    void geneticAlgorithm();
     // Neighbouring Functions
     void neighbouringHC(); //neighbour function for hill climbing
     void neighbouringSA(); //neighbour function for simulated annealing
-    void neighbouringTS();//neighbour function for tabu search
+    void neighbouringTS(); //neighbour function for tabu search
     // Evaluation Function
+    int calculateFitness(Individual individual);
     void evaluateScore();
 };
 
