@@ -110,7 +110,7 @@ int main(int argc, char **argv)
         printf("Missing arguments!\n");
         exit(-2);
     }
-    
+
     string input_file = argv[1];
     int heuristic = stoi(argv[2]);
 

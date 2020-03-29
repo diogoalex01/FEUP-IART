@@ -70,6 +70,7 @@ public:
     // Evaluation Function
     int calculateFitness(Individual individual);
     void evaluateScore();
+    int evaluateScore(vector<Slide> &v);
 };
 
 #endif //PhotoSelector_H

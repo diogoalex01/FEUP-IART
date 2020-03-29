@@ -18,29 +18,48 @@ Individual Individual::mate(Individual par2)
     vector<int> childChromosome;
     size_t added = 0;
 
+    //vector<int> divPoints;
+    // int counter = chromosomeLength % 3;
+
+    // for (int i = 0; i < 3; i++)
+    // {
+    //     if (counter > 0)
+    //         divPoints.push_back(chromosomeLength / 3 + 1);
+    //     else
+    //         divPoints.push_back(chromosomeLength / 3);
+    // }
+
     while (added < chromosomeLength)
     {
         // random probability
         double p = dis(generator) / chromosomeLength;
 
-        // if prob is less than 0.45, insert gene
-        // from parent 1
+        // if prob is less than 0.45, insert gene from firstParent
         if (p < 0.45)
         {
-            childChromosome.push_back(chromosome.at(added));
-            added++;
+            slideIndex = chromosome.at(added);
+            auto search = used.find(slideIndex);
+            if (search == used.end())
+            {
+                childChromosome.push_back(slideIndex);
+                used.insert(slideIndex);
+                added++;
+            }
         }
-
-        // if prob is between 0.45 and 0.90, insert
-        // gene from parent 2
+        // if prob is between 0.45 and 0.90, insert gene from secondParent
         else if (p < 0.90)
         {
-            childChromosome.push_back(par2.getChromosome().at(added));
-            added++;
-        }
 
-        // otherwise insert random gene(mutate),
-        // for maintaining diversity
+            slideIndex = par2.getChromosome().at(added);
+            auto search = used.find(slideIndex);
+            if (search == used.end())
+            {
+                childChromosome.push_back(slideIndex);
+                used.insert(slideIndex);
+                added++;
+            }
+        }
+        // otherwise mutate (insert random gene) to maintain diversity
         else
         {
             slideIndex = dis(generator);
