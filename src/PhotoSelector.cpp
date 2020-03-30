@@ -78,7 +78,7 @@ void PhotoSelector::makeSlides()
     evaluateScore();
     printf("Initial score: %d\n", getCurrentScore());
     populationSize = 50;
-    maxGenerations = 500; //////////////////////////////////////////////////////
+    maxGenerations = 100; //////////////////////////////////////////////////////
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 
     switch (heuristic)
@@ -288,10 +288,15 @@ vector<int> PhotoSelector::createChromosome(size_t rangeOfIndexes)
     size_t slideIndex;
     vector<int> genome;
 
-    while (genome.size() < rangeOfIndexes + 1)
+printf("Range :%zu\n", rangeOfIndexes);
+    while (genome.size() <= rangeOfIndexes)
     {
         slideIndex = dis(generator);
+        if(slideIndex > rangeOfIndexes){
+            exit(-2);
+        }
         auto search = used.find(slideIndex);
+
         if (search == used.end())
         {
             genome.push_back(slideIndex);
@@ -608,23 +613,26 @@ void PhotoSelector::geneticAlgorithm()
 
         vector<Individual> newGeneration;
 
-        int s = 0.1 * populationSize;
+        int s = 0.05 * populationSize;
 
         for (int i = 0; i < s; i++)
             newGeneration.push_back(population[i]);
 
-        s = 0.9 * populationSize;
+        s = 0.95 * populationSize;
 
         for (int i = 0; i < s; i++)
         {
             firstParentIndex = dis(generator);
             secondParentIndex = dis(generator);
+            printf("First indx: %d\nSecond indx: %d\nPp size: %zu\n", firstParentIndex, secondParentIndex, population.size());
             firstParent = population[firstParentIndex];
             secondParent = population[secondParentIndex];
-
             offspring = firstParent.mate(secondParent);
+            printf("OFFSPRING\n");
             individualFitness = calculateFitness(offspring);
+            printf("2\n");
             offspring.setFitness(individualFitness);
+            printf("------\nScore: %d\n------\n", offspring.getFitness());
             newGeneration.push_back(offspring);
         }
 
@@ -642,14 +650,14 @@ void PhotoSelector::geneticAlgorithm()
         cout << "in best indi: " << bestIndividual.at(i) << endl;
     }
     printf("--------------\n");
-    for (size_t i = 0; i < currentSlides.size(); i++)
+    for (size_t i = 0; i < bestIndividual.size(); i++)
     {
         newCurrent.push_back(currentSlides.at(bestIndividual.at(i)));
     }
 
     int finalPoints = evaluateScore(newCurrent);
 
-    printf("Final Score: %d\nActual was %d", maxFitness, finalPoints);
+    printf("Final Score: %d\nActual was %d\n", maxFitness, finalPoints);
 }
 
 // Evaluation Functions
@@ -662,12 +670,15 @@ int PhotoSelector::calculateFitness(Individual individual)
 
     if (individual.getChromosomeLength() <= 1)
         return 0;
-    //printf("Size do chromosome %zu\n",individual.getChromosomeLength());
-
+    printf("Size do chromosome %zu\n",allIndexes.size());
+    // for(size_t i = 0; i < allIndexes.size(); i++){
+    //     printf("Content: %d\n", allIndexes.at(i));
+        
+    // }
     for (size_t i = 0; i < individual.getChromosomeLength() - 1; i++)
     {
         //printf("i: %zu\n", i);
-        //printf("Indexes: %d and %d\n", allIndexes.at(i), allIndexes.at(i + 1));
+        printf("Indexes: %d and %d\n", allIndexes.at(i), allIndexes.at(i + 1));
         transitionScore = getTransitionScore(currentSlides.at(allIndexes.at(i)).getTags(), currentSlides.at(allIndexes.at(i + 1)).getTags());
         fitness += transitionScore;
     }

@@ -13,7 +13,7 @@ Individual Individual::mate(Individual par2)
     unordered_set<int> used;
     random_device device;
     mt19937 generator(device());
-    uniform_int_distribution<int> dis(0, chromosomeLength);
+    uniform_int_distribution<int> dis(0, chromosomeLength - 1);
     size_t slideIndex;
     vector<int> childChromosome;
     size_t added = 0;
@@ -64,6 +64,7 @@ Individual Individual::mate(Individual par2)
         {
             slideIndex = dis(generator);
             auto search = used.find(slideIndex);
+
             if (search == used.end())
             {
                 childChromosome.push_back(slideIndex);
