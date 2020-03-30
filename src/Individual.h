@@ -22,6 +22,7 @@ public:
     void setFitness(int fitness);
     //
     Individual mate(Individual parent2);
+    void mutate();
     int calculateFitness();
     // Overloading < operator
     bool operator<(const Individual &ind2) const

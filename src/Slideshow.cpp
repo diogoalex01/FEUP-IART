@@ -102,17 +102,35 @@ void writeOutputFile(string &ouputFileName, PhotoSelector &photoSelector)
     }
 }
 
-int main(int argc, char **argv)
+int main()
 {
-    if (argc < 3)
-    {
-        printf("Usage: ./Slideshow input_file heuristic");
-        printf("Missing arguments!\n");
-        exit(-2);
-    }
+    int heuristic;
+    string input_file;
+    cout << endl
+            << "--------------------------" << endl
+            << "------- Otimization-------" << endl
+            << "--------------------------" << endl << endl;
+    cout << endl;
+    cout << "Enter file name: ";
+    cin >> input_file;
+    cout << endl << endl;
+    cout << "What heuristic do you want to try?" << endl << endl;
+    cout << "1- Hill Climbing" << endl;
+    cout << "2- Simulated Annealing "<<endl;
+    cout << "3- Tabu Search" << endl;
+    cout << "4- Genetic Algorithm"<< endl << endl;
+    cin >> heuristic;
+    cout << endl;
+    
+    // if (argc < 3)
+    // {
+    //     printf("Usage: ./Slideshow input_file heuristic");
+    //     printf("Missing arguments!\n");
+    //     exit(-2);
+    // }
 
-    string input_file = argv[1];
-    int heuristic = stoi(argv[2]);
+    //string input_file = argv[1];
+    //int heuristic = stoi(argv[2]);
 
     PhotoSelector photoSelector({}, {}, heuristic);
     string inputFileName = input_file;
