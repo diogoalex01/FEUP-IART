@@ -323,6 +323,25 @@ vector<int> PhotoSelector::createChromosome(size_t rangeOfIndexes)
     return genome;
 }
 
+size_t PhotoSelector::parentRoulette(vector<Individual> &population, int index)
+{
+    size_t chosenParent = 0;
+    int scoreLowerBound = 0;
+
+    for (auto itr = population.begin(); itr != population.end(); itr++)
+    {
+        if (index >= scoreLowerBound && index <= scoreLowerBound + itr->getFitness())
+        {
+            return chosenParent;
+        }
+
+        chosenParent++;
+        scoreLowerBound += itr->getFitness();
+    }
+
+    return 0; // default pick is the first and best individual
+}
+
 // Heuristics
 
 void PhotoSelector::hillClimbing()
@@ -598,6 +617,7 @@ void PhotoSelector::geneticAlgorithm()
     vector<Individual> population;
     Individual newIndividual({});
     int individualFitness;
+    int totalPopulationScore = 0, newTotalPopulationScore = 0;
 
     // create initial population
     for (int i = 0; i < populationSize; i++)
@@ -607,13 +627,13 @@ void PhotoSelector::geneticAlgorithm()
         individualFitness = calculateFitness(newIndividual);
         newIndividual.setFitness(individualFitness);
         population.push_back(newIndividual);
+        totalPopulationScore += individualFitness;
     }
 
-    while (generation < maxGenerations && nAttempts < maxAttempts)
+    while (generation <= maxGenerations && nAttempts < maxAttempts)
     {
         printf("Generation: %d | Fitness: %d | Attempts: %ld\r", generation, maxFitness, nAttempts);
         fflush(stdout);
-
         sort(population.begin(), population.end());
 
         if (population[0].getFitness() > maxFitness)
@@ -628,25 +648,30 @@ void PhotoSelector::geneticAlgorithm()
         int s = 0.05 * populationSize;
 
         for (int i = 0; i < s; i++)
+        {
+            newTotalPopulationScore += population[i].getFitness();
             newGeneration.push_back(population[i]);
+        }
 
         s = populationSize - s;
 
         for (int i = 0; i < s; i++)
         {
-            firstParentIndex = dis(generator);
-            secondParentIndex = dis(generator);
-            firstParent = population[firstParentIndex];
-            secondParent = population[secondParentIndex];
+            uniform_int_distribution<int> parentDis(0, totalPopulationScore);
+            firstParentIndex = parentDis(generator);
+            secondParentIndex = parentDis(generator);
+            firstParent = population.at(parentRoulette(population, firstParentIndex));   // higher possibility of choosing a parent with a better fitness but
+            secondParent = population.at(parentRoulette(population, secondParentIndex)); // does not exclude the possibility of least fit parents mating
             offspring = firstParent.mate(secondParent);
             offspring.mutate(); // Adds a 1% probablity of mutation.
             individualFitness = calculateFitness(offspring);
             offspring.setFitness(individualFitness);
             newGeneration.push_back(offspring);
+            newTotalPopulationScore += individualFitness;
         }
-
+        totalPopulationScore = newTotalPopulationScore;
+        newTotalPopulationScore = 0;
         population = newGeneration;
-
         generation++;
         nAttempts++;
     }

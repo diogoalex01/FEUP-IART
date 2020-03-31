@@ -70,6 +70,7 @@ public:
     string tabuEntry(size_t firstIndex, size_t secondIndex, int kind);
     bool isTabu(string entry);
     vector<int> createChromosome(size_t range);
+    size_t parentRoulette(vector<Individual> &population, int i);
     // Heuristics
     void hillClimbing();
     void simulatedAnnealing();

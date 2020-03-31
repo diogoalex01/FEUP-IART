@@ -74,16 +74,14 @@ void Individual::mutate()
     size_t nMutations = chromosomeLength / 10;
     size_t firstIndex, secondIndex;
     int hasMutation = mutationDis(generator);
-    // printf("hasMutation = %d\r", hasMutation);
+
     if (hasMutation == 1)
     {
         while (nMutations > 0)
         {
             firstIndex = indexesDis(generator);
             secondIndex = indexesDis(generator);
-
             swap(chromosome.at(firstIndex), chromosome.at(secondIndex));
-
             nMutations--;
         }
     }
