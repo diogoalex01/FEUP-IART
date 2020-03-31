@@ -21,9 +21,8 @@ Individual Individual::mate(Individual secondParent)
     size_t lastFromFirstParent = 0;
     size_t lastFromSecondParent = 0;
     size_t blockIndex = 0;
-
     size_t blockSize = 10;
-
+    
     while (childChromosome.size() < chromosomeLength)
     {
         while (added < blockSize && childChromosome.size() < chromosomeLength && blockIndex + lastFromFirstParent < chromosomeLength)
@@ -39,7 +38,7 @@ Individual Individual::mate(Individual secondParent)
 
             blockIndex++;
         }
-
+        
         lastFromFirstParent = blockIndex;
         added = 0;
         blockIndex = 0;
@@ -62,7 +61,7 @@ Individual Individual::mate(Individual secondParent)
         added = 0;
         blockIndex = 0;
     }
-
+    
     return Individual(childChromosome);
 };
 
@@ -70,18 +69,23 @@ void Individual::mutate()
 {
     random_device device;
     mt19937 generator(device());
-    uniform_int_distribution<int> dis(0, chromosomeLength - 1);
+    uniform_int_distribution<int> mutationDis(0, 100);
+    uniform_int_distribution<int> indexesDis(0, chromosomeLength - 1);
     size_t nMutations = chromosomeLength / 10;
     size_t firstIndex, secondIndex;
-
-    while (nMutations > 0)
+    int hasMutation = mutationDis(generator);
+    // printf("hasMutation = %d\r", hasMutation);
+    if (hasMutation == 1)
     {
-        firstIndex = dis(generator);
-        secondIndex = dis(generator);
+        while (nMutations > 0)
+        {
+            firstIndex = indexesDis(generator);
+            secondIndex = indexesDis(generator);
 
-        swap(chromosome.at(firstIndex), chromosome.at(secondIndex));
+            swap(chromosome.at(firstIndex), chromosome.at(secondIndex));
 
-        nMutations--;
+            nMutations--;
+        }
     }
 }
 

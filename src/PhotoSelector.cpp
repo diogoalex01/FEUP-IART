@@ -123,7 +123,7 @@ void PhotoSelector::makeSlides()
 
     printf("- Made %zu vertical slides\n", vPhotos.size() / 2);
     lastSlideIndex = getCurrentSlides().size() - 1;
-    printf("- Total slides: %zu\n", lastSlideIndex + 1);
+    printf("- Total slides: %lu\n", lastSlideIndex + 1);
     evaluateScore();
     initialScore = getCurrentScore();
 }
@@ -311,7 +311,6 @@ vector<int> PhotoSelector::createChromosome(size_t rangeOfIndexes)
     while (genome.size() <= rangeOfIndexes)
     {
         slideIndex = dis(generator);
-
         auto search = used.find(slideIndex);
 
         if (search == used.end())
@@ -631,7 +630,7 @@ void PhotoSelector::geneticAlgorithm()
         for (int i = 0; i < s; i++)
             newGeneration.push_back(population[i]);
 
-        s = 0.95 * populationSize;
+        s = populationSize - s;
 
         for (int i = 0; i < s; i++)
         {
@@ -640,7 +639,7 @@ void PhotoSelector::geneticAlgorithm()
             firstParent = population[firstParentIndex];
             secondParent = population[secondParentIndex];
             offspring = firstParent.mate(secondParent);
-            offspring.mutate();
+            offspring.mutate(); // Adds a 1% probablity of mutation.
             individualFitness = calculateFitness(offspring);
             offspring.setFitness(individualFitness);
             newGeneration.push_back(offspring);
@@ -672,9 +671,10 @@ int PhotoSelector::calculateFitness(Individual individual)
     if (individual.getChromosomeLength() <= 1)
         return 0;
 
-    for (size_t i = 0; i < individual.getChromosomeLength() - 1; i++)
+    auto itr = allIndexes.begin();
+    for (; itr != allIndexes.end() - 1; itr++)
     {
-        transitionScore = getTransitionScore(currentSlides.at(allIndexes.at(i)).getTags(), currentSlides.at(allIndexes.at(i + 1)).getTags());
+        transitionScore = getTransitionScore(currentSlides.at((*itr)).getTags(), currentSlides.at((*(itr + 1))).getTags());
         fitness += transitionScore;
     }
 
