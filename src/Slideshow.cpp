@@ -27,13 +27,15 @@ void parseInputFile(string &inputFileName, PhotoSelector &photoSelector)
 
         photoSelector.setVertical(vPhotos);
         photoSelector.setHorizontal(hPhotos);
-        printf("[Found %zu vertical photos]\n", vPhotos.size());
-        printf("[Found %zu horizontal photos]\n", hPhotos.size());
+        printf("   [Found %zu vertical photos  ]\n", vPhotos.size());
+        printf("   [Found %zu horizontal photos]\n", hPhotos.size());
         inputFile.close();
     }
     else
     {
-        cerr << "Input file not found, try again!" << endl;
+        cerr << "Input file not found, try again!" << endl
+             << endl;
+        exit(-1);
     }
 }
 
@@ -99,48 +101,181 @@ void writeOutputFile(string &ouputFileName, PhotoSelector &photoSelector)
     else
     {
         cout << "Unable to open file!";
+        exit(-1);
     }
+}
+
+void hillClimbingParameters(PhotoSelector &photoSelector)
+{
+    int maxAttempts;
+    cout << "Maximum number of unsuccessful attempts? ";
+    cin >> maxAttempts;
+    cout << endl;
+
+    // start counting elapsed time
+    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+
+    cout << "---------------------------------------------------" << endl
+         << endl;
+
+    photoSelector.setMaxAttempts(maxAttempts);
+    photoSelector.hillClimbing();
+
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    cout << "\n\nElapsed Time: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " [ms]" << endl;
+}
+
+void simulatedAnnealingParameters(PhotoSelector &photoSelector)
+{
+    double T;
+    double Tmin;
+    double alpha;
+    long numIterations;
+
+    cout << "Initial temperature: ";
+    cin >> T;
+    cout << "Minimum temperature: ";
+    cin >> Tmin;
+    cout << "Temperature drop: ";
+    cin >> alpha;
+    cout << "Number of iterations per temperature drop: ";
+    cin >> numIterations;
+    cout << endl;
+
+    // start counting elapsed time
+    photoSelector.setTemperature(T);
+    photoSelector.setTmin(Tmin);
+    photoSelector.setAlpha(alpha);
+    photoSelector.setNumIterations(numIterations);
+
+    // start counting elapsed time
+    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+
+    cout << "---------------------------------------------------" << endl
+         << endl;
+
+    photoSelector.simulatedAnnealing();
+
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    cout << "\n\nElapsed Time: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " [ms]" << endl;
+}
+
+void tabuSearchParameters(PhotoSelector &photoSelector)
+{
+    int maxAttempts, fifoSize;
+    cout << "Maximum number of unsuccessful attempts? ";
+    cin >> maxAttempts;
+    cout << "Tabu list size: ";
+    cin >> fifoSize;
+    cout << endl;
+
+    // start counting elapsed time
+    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+
+    cout << "---------------------------------------------------" << endl
+         << endl;
+
+    photoSelector.setMaxAttempts(maxAttempts);
+    photoSelector.setTabuListSize(fifoSize);
+    photoSelector.tabuSearch();
+
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    cout << "\n\nElapsed Time: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " [ms]" << endl;
+}
+
+void geneticAlgorithmParameters(PhotoSelector &photoSelector)
+{
+    int populationSize;
+    int maxGenerations;
+    int maxAttempts;
+
+    cout << "Population size: ";
+    cin >> populationSize;
+    cout << "Number of generations: ";
+    cin >> maxGenerations;
+    cout << "Maximum number of consecutive generations without improvement: ";
+    cin >> maxAttempts;
+    cout << endl;
+
+    photoSelector.setMaxAttempts(maxAttempts);
+
+    // start counting elapsed time
+    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+
+    cout << "---------------------------------------------------" << endl
+         << endl;
+
+    photoSelector.setPopulationSize(populationSize);
+    photoSelector.setMaxGenerations(maxGenerations);
+    photoSelector.geneticAlgorithm();
+
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    cout << "\n\nElapsed Time: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " [ms]" << endl;
+}
+
+void chooseParameters(PhotoSelector &photoSelector, int heuristic)
+{
+    photoSelector.setHeuristic(heuristic);
+
+    switch (heuristic)
+    {
+    case 1:
+        hillClimbingParameters(photoSelector);
+        break;
+
+    case 2:
+        simulatedAnnealingParameters(photoSelector);
+        break;
+
+    case 3:
+        tabuSearchParameters(photoSelector);
+        break;
+
+    case 4:
+        geneticAlgorithmParameters(photoSelector);
+        break;
+    }
+
+    photoSelector.evaluateScore();
+    printf("\nInitial score: %d\nFinal score: %d\n", photoSelector.getInitialScore(), photoSelector.getCurrentScore());
+    photoSelector.evaluateScore();
+    cout << "---------------------------------------------------" << endl
+         << endl;
 }
 
 int main()
 {
     int heuristic;
-    string input_file;
+    string inputFileName;
+
     cout << endl
-            << "--------------------------" << endl
-            << "------- Otimization-------" << endl
-            << "--------------------------" << endl << endl;
+         << "----------------------------" << endl
+         << "------- Optimization -------" << endl
+         << "----------------------------" << endl;
     cout << endl;
-    cout << "Enter file name: ";
-    cin >> input_file;
-    cout << endl << endl;
-    cout << "What heuristic do you want to try?" << endl << endl;
-    cout << "1- Hill Climbing" << endl;
-    cout << "2- Simulated Annealing "<<endl;
-    cout << "3- Tabu Search" << endl;
-    cout << "4- Genetic Algorithm"<< endl << endl;
-    cin >> heuristic;
-    cout << endl;
-    
-    // if (argc < 3)
-    // {
-    //     printf("Usage: ./Slideshow input_file heuristic");
-    //     printf("Missing arguments!\n");
-    //     exit(-2);
-    // }
+    cout << "File name: ";
+    cin >> inputFileName;
 
-    //string input_file = argv[1];
-    //int heuristic = stoi(argv[2]);
-
-    PhotoSelector photoSelector({}, {}, heuristic);
-    string inputFileName = input_file;
-    // cout << "Enter input file name: ";
-    // cin >> inputFileName;
-
-    cout << "Opening " << inputFileName << "!" << endl;
+    cout << "\n- Opening " << inputFileName << "!" << endl;
+    PhotoSelector photoSelector({}, {});
     parseInputFile(inputFileName, photoSelector);
     photoSelector.makeSlides();
     photoSelector.getCurrentScore();
+
+    cout << endl;
+    cout << "Which heuristic do you want to try?" << endl
+         << endl;
+    cout << "1: Hill Climbing" << endl;
+    cout << "2: Simulated Annealing " << endl;
+    cout << "3: Tabu Search" << endl;
+    cout << "4: Genetic Algorithm" << endl
+         << endl;
+    cout << "Heuristic: ";
+    cin >> heuristic;
+    cout << endl;
+
+    chooseParameters(photoSelector, heuristic);
+
     string ouputFileName = "example.txt";
     writeOutputFile(ouputFileName, photoSelector);
 

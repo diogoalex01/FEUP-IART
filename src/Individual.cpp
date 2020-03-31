@@ -22,7 +22,7 @@ Individual Individual::mate(Individual secondParent)
     size_t lastFromSecondParent = 0;
     size_t blockIndex = 0;
 
-    size_t blockSize = 100;
+    size_t blockSize = 10;
 
     while (childChromosome.size() < chromosomeLength)
     {

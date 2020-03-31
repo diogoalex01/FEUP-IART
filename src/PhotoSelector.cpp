@@ -2,11 +2,10 @@
 
 // Constructor
 
-PhotoSelector::PhotoSelector(vector<Photo> vPhotos, vector<Photo> hPhotos, int heuristic)
+PhotoSelector::PhotoSelector(vector<Photo> vPhotos, vector<Photo> hPhotos)
 {
     this->vPhotos = vPhotos;
     this->hPhotos = hPhotos;
-    this->heuristic = heuristic;
 }
 
 // Getters
@@ -31,6 +30,11 @@ vector<Slide> PhotoSelector::getCurrentSlides()
     return currentSlides;
 }
 
+int PhotoSelector::getInitialScore()
+{
+    return initialScore;
+}
+
 // Setters
 
 void PhotoSelector::setVertical(vector<Photo> vPhotos)
@@ -41,6 +45,51 @@ void PhotoSelector::setVertical(vector<Photo> vPhotos)
 void PhotoSelector::setHorizontal(vector<Photo> hPhotos)
 {
     this->hPhotos = hPhotos;
+}
+
+void PhotoSelector::setHeuristic(int heuristic)
+{
+    this->heuristic = heuristic;
+}
+
+void PhotoSelector::setMaxAttempts(int maxAttempts)
+{
+    this->maxAttempts = maxAttempts;
+}
+
+void PhotoSelector::setTemperature(double temperature)
+{
+    this->T = temperature;
+}
+
+void PhotoSelector::setTmin(double Tmin)
+{
+    this->Tmin = Tmin;
+}
+
+void PhotoSelector::setAlpha(double alpha)
+{
+    this->alpha = alpha;
+}
+
+void PhotoSelector::setNumIterations(int numIterations)
+{
+    this->numIterations = numIterations;
+}
+
+void PhotoSelector::setTabuListSize(size_t size)
+{
+    this->tabuListSize = size;
+}
+
+void PhotoSelector::setPopulationSize(int populationSize)
+{
+    this->populationSize = populationSize;
+}
+
+void PhotoSelector::setMaxGenerations(int maxGenerations)
+{
+    this->maxGenerations = maxGenerations;
 }
 
 // Main Functions
@@ -59,7 +108,7 @@ void PhotoSelector::makeSlides()
         currentSlides.push_back(slide);
     }
 
-    printf("Horizontal slides finished!\n");
+    printf("- Made %zu horizontal slides\n", hPhotos.size());
 
     for (auto it = vPhotos.begin(); it != vPhotos.end(); it++)
     {
@@ -72,43 +121,11 @@ void PhotoSelector::makeSlides()
         }
     }
 
-    printf("Vertical slides finished!\n");
+    printf("- Made %zu vertical slides\n", vPhotos.size() / 2);
     lastSlideIndex = getCurrentSlides().size() - 1;
-    printf("Finished making %zu slides!\n", lastSlideIndex + 1);
+    printf("- Total slides: %zu\n", lastSlideIndex + 1);
     evaluateScore();
-    printf("Initial score: %d\n", getCurrentScore());
-    populationSize = 30;
-    maxGenerations = 100;
-    maxAttempts = lastSlideIndex + 1;
-    numIterations = lastSlideIndex + 1;
-    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-
-    switch (heuristic)
-    {
-    case 1:
-        hillClimbing();
-        break;
-
-    case 2:
-        simulatedAnnealing();
-        break;
-
-    case 3:
-        tabuSearch();
-        break;
-
-    case 4:
-        geneticAlgorithm();
-        break;
-    }
-
-    chrono::steady_clock::time_point end = chrono::steady_clock::now();
-    evaluateScore();
-    printf("Final score: %d\n", getCurrentScore());
-    cout << "Elapsed Time: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " [ms]" << endl;
-    evaluateScore();
-    // printf("Final Score: %d\n", getCurrentScore());
-    // printf("State Changes: %ld\n", stateChanges);
+    initialScore = getCurrentScore();
 }
 
 void PhotoSelector::findVerticalPair(Photo &photo, Slide &slide)
@@ -311,32 +328,31 @@ vector<int> PhotoSelector::createChromosome(size_t rangeOfIndexes)
 
 void PhotoSelector::hillClimbing()
 {
-    printf("[Hill Climbing]\n");
-
-    printf("Max Number of Attempts: %ld\n", maxAttempts);
-
     while (nAttempts < maxAttempts)
     {
         nAttempts++;
         stateChanges++;
+
+        evaluateScore();
+        printf("State changes: %ld | Score: %d | Attempts: %ld\r", stateChanges, getCurrentScore(), nAttempts);
+        fflush(stdout);
+
         neighbouringHC();
     }
 }
 
 void PhotoSelector::simulatedAnnealing()
 {
-    printf("[Simulated Annealing]\n");
-
-    printf("Number of Iterations: %ld Per Temperature Drop\n", numIterations);
-
     // keeps annealing till reaching the minimum temperature
     while (T > Tmin)
     {
-        printf("T is %f\n", T);
         evaluateScore();
-        printf(" score: %d\n", getCurrentScore());
+        printf("T: %f | Current score: %d | Attempts: %ld\r", T, getCurrentScore(), nAttempts);
+        fflush(stdout);
+
         for (int i = 0; i < numIterations; i++)
         {
+            nAttempts++;
             stateChanges++;
             neighbouringSA();
         }
@@ -347,11 +363,12 @@ void PhotoSelector::simulatedAnnealing()
 
 void PhotoSelector::tabuSearch()
 {
-    printf("[Tabu Search]\n");
-    printf("Max Attempts: %ld\n", maxAttempts);
-
     while (nAttempts < maxAttempts)
     {
+        evaluateScore();
+        printf("State changes: %ld | Score: %d | Attempts: %ld\r", stateChanges, getCurrentScore(), nAttempts);
+        fflush(stdout);
+
         nAttempts++;
         stateChanges++;
         neighbouringTS();
@@ -522,10 +539,8 @@ void PhotoSelector::neighbouringTS()
                 nAttempts = 0;
                 tabuList.push(entry);
 
-                if (tabuList.size() > lastSlideIndex)
-                {
+                if (tabuList.size() > tabuListSize)
                     tabuList.pop();
-                }
             }
         }
         // Swap position between vertical slides
@@ -543,10 +558,8 @@ void PhotoSelector::neighbouringTS()
 
                 tabuList.push(entry);
 
-                if (tabuList.size() > lastSlideIndex)
-                {
+                if (tabuList.size() > tabuListSize)
                     tabuList.pop();
-                }
             }
         }
     }
@@ -597,10 +610,11 @@ void PhotoSelector::geneticAlgorithm()
         population.push_back(newIndividual);
     }
 
-    while (nAttempts < maxAttempts / 2)
+    while (generation < maxGenerations && nAttempts < maxAttempts)
     {
-        printf("Generation: %d \n", generation);
-        printf("Fitness: %d \n", maxFitness);
+        printf("Generation: %d | Fitness: %d | Attempts: %ld\r", generation, maxFitness, nAttempts);
+        fflush(stdout);
+
         sort(population.begin(), population.end());
 
         if (population[0].getFitness() > maxFitness)
@@ -637,8 +651,15 @@ void PhotoSelector::geneticAlgorithm()
         generation++;
         nAttempts++;
     }
-    
-    printf("Final Score: %d\n", maxFitness);
+
+    vector<Slide> newCurrent;
+
+    for (size_t i = 0; i < bestIndividual.size(); i++)
+    {
+        newCurrent.push_back(currentSlides.at(bestIndividual.at(i)));
+    }
+
+    currentSlides = newCurrent;
 }
 
 // Evaluation Functions
@@ -656,6 +677,7 @@ int PhotoSelector::calculateFitness(Individual individual)
         transitionScore = getTransitionScore(currentSlides.at(allIndexes.at(i)).getTags(), currentSlides.at(allIndexes.at(i + 1)).getTags());
         fitness += transitionScore;
     }
+
     return fitness;
 };
 

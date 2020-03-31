@@ -16,6 +16,7 @@ class PhotoSelector
     int heuristic;
 
     int currentScore = 0;
+    int initialScore = 0;
     long stateChanges = 0;
     long nAttempts = 0;
     long maxAttempts;
@@ -27,6 +28,7 @@ class PhotoSelector
 
     queue<string> tabuList;
     queue<string> tabuAux;
+    size_t tabuListSize;
 
     vector<Individual> population;
     int populationSize;
@@ -39,15 +41,25 @@ class PhotoSelector
 
 public:
     // Constructor
-    PhotoSelector(vector<Photo> vp, vector<Photo> hp, int heuristic);
+    PhotoSelector(vector<Photo> vp, vector<Photo> hp);
     // Getters
     int getCurrentScore();
     vector<Photo> getVertical();
     vector<Photo> getHorizontal();
     vector<Slide> getCurrentSlides();
+    int getInitialScore();
     // Setters
     void setVertical(vector<Photo> vp);
     void setHorizontal(vector<Photo> hp);
+    void setHeuristic(int heuristic);
+    void setMaxAttempts(int maxAttempts);
+    void setTemperature(double temperature);
+    void setTmin(double Tmin);
+    void setAlpha(double alpha);
+    void setNumIterations(int numIterations);
+    void setTabuListSize(size_t size);
+    void setPopulationSize(int populationSize);
+    void setMaxGenerations(int maxGenerations);
     // Main Functions
     void makeSlides();
     void findVerticalPair(Photo &photo, Slide &slide);
